@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ecnepsnai/console"
+	"github.com/ecnepsnai/logtic"
 )
 
 // Schedule describes a schedule, containing jobs to run
@@ -18,8 +18,8 @@ type Schedule struct {
 	// Optional time when the schedule should expire. Set to nil for no expiry date.
 	Expires *time.Time
 
-	console *console.Console
-	active  bool
+	log    *logtic.Source
+	active bool
 }
 
 // Job describes a job that the schedule will run
@@ -35,12 +35,12 @@ type Job struct {
 }
 
 // New create a new default schedule with the provided jobs
-func New(Jobs []Job, output *console.Console) Schedule {
+func New(Jobs []Job) Schedule {
 	return Schedule{
 		Jobs:     Jobs,
 		Interval: 60,
 		Expires:  nil,
-		console:  output,
+		log:      logtic.Connect("scheduler"),
 	}
 }
 
@@ -50,14 +50,14 @@ func (s Schedule) Start() {
 	// Wait until the next minute to start the scheduler
 	// This ensures that minute based jobs run at the top of the minute
 	waitDur := time.Duration(s.Interval - time.Now().Second())
-	s.console.Debug("Starting scheduler in %d seconds", waitDur)
+	s.log.Debug("Starting scheduler in %d seconds", waitDur)
 	time.Sleep(waitDur * time.Second)
 	s.ForceStart()
 }
 
 // ForceStart starts the schedule immediately.
 func (s Schedule) ForceStart() {
-	s.console.Debug("Started scheduler")
+	s.log.Debug("Started scheduler")
 
 	s.active = true
 
@@ -106,12 +106,12 @@ func isItTime(dateComponent string, currentValue int) bool {
 
 func (s Schedule) runJob(job Job) {
 	start := time.Now()
-	s.console.Debug("Starting scheduled job %s", job.Name)
+	s.log.Debug("Starting scheduled job %s", job.Name)
 	err := job.Exec()
 	if err != nil {
-		s.console.Error("Scheduled job %s failed: %s", job.Name, err.Error())
+		s.log.Error("Scheduled job %s failed: %s", job.Name, err.Error())
 		return
 	}
 	elapsed := time.Since(start)
-	s.console.Debug("Scheduled job %s finished in %s", job.Name, elapsed)
+	s.log.Debug("Scheduled job %s finished in %s", job.Name, elapsed)
 }
