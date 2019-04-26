@@ -2,6 +2,7 @@
 package scheduler
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -35,8 +36,8 @@ type Job struct {
 }
 
 // New create a new default schedule with the provided jobs
-func New(Jobs []Job) Schedule {
-	return Schedule{
+func New(Jobs []Job) *Schedule {
+	return &Schedule{
 		Jobs:     Jobs,
 		Interval: 60,
 		Expires:  nil,
@@ -46,7 +47,7 @@ func New(Jobs []Job) Schedule {
 
 // Start start the schedule. Will wait until the next tick before running so its recommended that you call this
 // inside of a goroutine
-func (s Schedule) Start() {
+func (s *Schedule) Start() {
 	// Wait until the next minute to start the scheduler
 	// This ensures that minute based jobs run at the top of the minute
 	waitDur := time.Duration(s.Interval - time.Now().Second())
@@ -56,8 +57,8 @@ func (s Schedule) Start() {
 }
 
 // ForceStart starts the schedule immediately.
-func (s Schedule) ForceStart() {
-	s.log.Debug("Started scheduler")
+func (s *Schedule) ForceStart() {
+	s.log.Debug("Started scheduler at '%s'", time.Now().Format("2006-01-02 15:04:05"))
 
 	s.active = true
 
@@ -65,6 +66,7 @@ func (s Schedule) ForceStart() {
 		if !s.active {
 			return
 		}
+		s.log.Debug("Check for eligable jobs '%s'", time.Now().Format("2006-01-02 15:04:05"))
 
 		for _, job := range s.Jobs {
 			if job.eligableForRun() {
@@ -75,8 +77,10 @@ func (s Schedule) ForceStart() {
 	}
 }
 
-// Stop stop the schedule.
-func (s Schedule) Stop() {
+// StopSoon stops the schedule on the next check.
+// this may take up to 60 seconds to happen.
+// Does not block.
+func (s *Schedule) StopSoon() {
 	s.active = false
 }
 
@@ -101,10 +105,10 @@ func isItTime(dateComponent string, currentValue int) bool {
 		return currentValue%divideBy == 0
 	}
 
-	return dateComponent == string(currentValue) || dateComponent == "*"
+	return dateComponent == toString(currentValue) || dateComponent == "*"
 }
 
-func (s Schedule) runJob(job Job) {
+func (s *Schedule) runJob(job Job) {
 	start := time.Now()
 	s.log.Debug("Starting scheduled job %s", job.Name)
 	err := job.Exec()
@@ -113,5 +117,9 @@ func (s Schedule) runJob(job Job) {
 		return
 	}
 	elapsed := time.Since(start)
-	s.log.Debug("Scheduled job %s finished in %s", job.Name, elapsed)
+	s.log.Info("Scheduled job %s finished in %s", job.Name, elapsed)
+}
+
+func toString(i int) string {
+	return fmt.Sprintf("%d", i)
 }
