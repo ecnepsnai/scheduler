@@ -1,4 +1,9 @@
 # scheduler
+
+[![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/ecnepsnai/scheduler)
+[![Releases](https://img.shields.io/github/release/ecnepsnai/scheduler/all.svg?style=flat-square)](https://github.com/ecnepsnai/scheduler/releases)
+[![LICENSE](https://img.shields.io/github/license/ecnepsnai/scheduler.svg?style=flat-square)](https://github.com/ecnepsnai/scheduler/blob/master/LICENSE)
+
 A go implementation of a cron-like task scheduler
 
 # Installation
@@ -13,25 +18,19 @@ go get github.com/ecnepsnai/scheduler
 package main
 
 import (
-    "github.com/ecnepsnai/console"
     "github.com/ecnepsnai/scheduler"
 )
 
 func main() {
-    Console, err := console.New(logPath, console.LevelDebug)
-    if err != nil {
-        panic(err.Error())
-    }
-
     schedule = scheduler.New([]scheduler.Job{
         {
-            Pattern: "59 23 * * *",
-            Name:    "LogRotate",
+            Pattern: "0 0 * * *",
+            Name:    "NightlyJob",
             Exec: func() error {
-                return Console.Rotate(Directories.Backup)
+                return funcThatMightReturnAnErr()
             },
         }
-    }, Console)
+    })
     go schedule.Start()
 }
 ```
