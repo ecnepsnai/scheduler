@@ -111,6 +111,11 @@ func isItTime(dateComponent string, currentValue int) bool {
 func (s *Schedule) runJob(job Job) {
 	start := time.Now()
 	s.log.Debug("Starting scheduled job %s", job.Name)
+	defer func() {
+		if r := recover(); r != nil {
+			s.log.Error("Scheduled job %s panicked. Error: %v", job.Name, r)
+		}
+	}()
 	err := job.Exec()
 	if err != nil {
 		s.log.Error("Scheduled job %s failed: %s", job.Name, err.Error())
