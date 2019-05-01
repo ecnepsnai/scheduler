@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/ecnepsnai/logtic"
 	"github.com/ecnepsnai/scheduler"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func TestScheduler(t *testing.T) {
+func TestSchedulerStop(t *testing.T) {
 	var schedule *scheduler.Schedule
 	schedule = scheduler.New([]scheduler.Job{
 		scheduler.Job{
@@ -37,5 +38,34 @@ func TestScheduler(t *testing.T) {
 			},
 		},
 	})
-	schedule.Start()
+	schedule.CheckInterval = 1 * time.Millisecond
+	schedule.ForceStart()
+}
+
+func TestSchedulerPanic(t *testing.T) {
+	didPanic := 0
+	var schedule *scheduler.Schedule
+	schedule = scheduler.New([]scheduler.Job{
+		scheduler.Job{
+			Name:    "StopScheduler",
+			Pattern: "* * * * *",
+			Exec: func() error {
+				didPanic = 1
+				panic("paniced!")
+			},
+		},
+	})
+	schedule.CheckInterval = 1 * time.Minute
+	go schedule.ForceStart()
+	i := 0
+	for {
+		i++
+		if i > 10 {
+			t.Fatalf("Scheduled job never ran?")
+		}
+		if didPanic == 1 {
+			return
+		}
+		time.Sleep(1 * time.Millisecond)
+	}
 }

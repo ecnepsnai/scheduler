@@ -18,6 +18,8 @@ type Schedule struct {
 	Interval int
 	// Optional time when the schedule should expire. Set to nil for no expiry date.
 	Expires *time.Time
+	// CheckInterval
+	CheckInterval time.Duration
 
 	log    *logtic.Source
 	active bool
@@ -73,7 +75,7 @@ func (s *Schedule) ForceStart() {
 				go s.runJob(job)
 			}
 		}
-		time.Sleep(60 * time.Second)
+		time.Sleep(s.CheckInterval)
 	}
 }
 
