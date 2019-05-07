@@ -3,6 +3,7 @@ package scheduler
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -115,7 +116,7 @@ func (s *Schedule) runJob(job Job) {
 	s.log.Debug("Starting scheduled job %s", job.Name)
 	defer func() {
 		if r := recover(); r != nil {
-			s.log.Error("Scheduled job %s panicked. Error: %v", job.Name, r)
+			fmt.Fprintf(os.Stderr, "Scheduled job %s panicked. Error: %v\n", job.Name, r)
 		}
 	}()
 	err := job.Exec()
