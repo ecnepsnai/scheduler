@@ -38,7 +38,7 @@ func TestSchedulerStop(t *testing.T) {
 			},
 		},
 	})
-	schedule.CheckInterval = 1 * time.Millisecond
+	schedule.Interval = 1 * time.Millisecond
 	schedule.ForceStart()
 }
 
@@ -55,7 +55,7 @@ func TestSchedulerPanic(t *testing.T) {
 			},
 		},
 	})
-	schedule.CheckInterval = 1 * time.Minute
+	schedule.Interval = 1 * time.Minute
 	go schedule.ForceStart()
 	i := 0
 	for {
