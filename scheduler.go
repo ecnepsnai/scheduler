@@ -16,7 +16,7 @@ type Schedule struct {
 	// The job to run
 	Jobs []Job
 	// Interval (in seconds) which the scheduler should check if a job is eligable to run
-	Interval int
+	Interval time.Duration
 	// Optional time when the schedule should expire. Set to nil for no expiry date.
 	Expires *time.Time
 	// CheckInterval
@@ -42,7 +42,7 @@ type Job struct {
 func New(Jobs []Job) *Schedule {
 	return &Schedule{
 		Jobs:     Jobs,
-		Interval: 60,
+		Interval: 60 * time.Second,
 		Expires:  nil,
 		log:      logtic.Connect("scheduler"),
 	}
@@ -53,7 +53,7 @@ func New(Jobs []Job) *Schedule {
 func (s *Schedule) Start() {
 	// Wait until the next minute to start the scheduler
 	// This ensures that minute based jobs run at the top of the minute
-	waitDur := time.Duration(s.Interval - time.Now().Second())
+	waitDur := time.Duration(int(s.Interval.Seconds()) - time.Now().Second())
 	s.log.Debug("Starting scheduler in %d seconds", waitDur)
 	time.Sleep(waitDur * time.Second)
 	s.ForceStart()
