@@ -16,12 +16,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	file, _, err := logtic.New(path.Join(tmpDir, "scheduler.log"), logtic.LevelDebug, "test")
-	if err != nil {
+	logtic.Log.FilePath = path.Join(tmpDir, "scheduler.log")
+	logtic.Log.Level = logtic.LevelDebug
+	if err := logtic.Open(); err != nil {
 		panic(err)
 	}
 	retCode := m.Run()
-	file.Close()
+	logtic.Close()
 	os.RemoveAll(tmpDir)
 	os.Exit(retCode)
 }
